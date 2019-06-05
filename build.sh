@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 export GIT_VERSION=2.21.0
 

@@ -1,6 +1,7 @@
 FROM lambci/lambda-base
 
 RUN find /usr ! -type d | sort > fs.txt && \
+  ( yum check || yum reinstall -y ImageMagick ) && \
   yum reinstall -y openssl openssh-clients fipscheck-lib && \
   bash -c 'comm -13 fs.txt <(find /usr ! -type d | sort)' | \
   grep -v ^/usr/share | \
@@ -14,15 +15,11 @@ FROM lambci/lambda-base:build
 COPY --from=0 /opt /opt
 
 RUN yum install -y --releasever=latest yum-utils rpm-build && \
-  yumdownloader --source openssh-6.6.1p1 && \
-  yum-builddep -y openssh-6.6.1p1 && \
+  yumdownloader --source openssh && \
+  yum-builddep -y openssh && \
   rpm -ivh *.rpm
 
-COPY openssh-6.6p1-privend.patch /usr/src/rpm/SOURCES/
-COPY openssh.spec.patch /tmp/
-
 RUN cd /usr/src/rpm/SPECS && \
-  patch openssh.spec < /tmp/openssh.spec.patch && \
   rpmbuild -bi openssh.spec && \
   cp /usr/src/rpm/BUILDROOT/openssh*/usr/bin/ssh /opt/bin/
 
